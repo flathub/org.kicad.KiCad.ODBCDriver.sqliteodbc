@@ -38,15 +38,16 @@ modules:
     sources:
       - type: archive
         strip-components: 2
-        url: http://www.ch-werner.de/sqliteodbc/sqliteodbc-0.9998.tar.gz
-        sha256: fabcbec73f98d1a34911636c02c29fc64147d27516b142e8e132c68c05a6065b
+        url: http://www.ch-werner.de/sqliteodbc/sqliteodbc-0.9999.tar.gz
+        sha256: 2c3cd6fd9d2be59d439122b0488788e5431b879a600f01117697763c5b563cf7
         x-checker-data:
           type: html
           url: http://www.ch-werner.de/sqliteodbc/
-          version-pattern: <A HREF="sqliteodbc-([\d\.]+)\.tar\.gz">current source code</A>
+          version-pattern: <A HREF="sqliteodbc-([\d\.]+)\.tar\.gz">current source
+            code</A>
           url-template: http://www.ch-werner.de/sqliteodbc/sqliteodbc-$version.tar.gz
       - type: shell
         commands:
-         - cp -p /usr/share/automake-*/config.{sub,guess} .
+          - cp -p /usr/share/automake-*/config.{sub,guess} .
       - type: file
         path: org.kicad.KiCad.ODBCDriver.sqliteodbc.metainfo.xml
