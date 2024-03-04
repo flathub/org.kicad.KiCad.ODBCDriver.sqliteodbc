@@ -37,11 +37,11 @@ modules:
           --origin=flatpak org.kicad.KiCad.ODBCDriver.sqliteodbc
     sources:
       - type: archive
-        is-main-source: true
         strip-components: 2
         url: http://www.ch-werner.de/sqliteodbc/sqliteodbc-0.9999.tar.gz
         sha256: a8ac240e80ff2354a0e0e9ab4d3b567192ae4f3bf5d29244478663a316024732
         x-checker-data:
+          is-main-source: true
           type: html
           url: http://www.ch-werner.de/sqliteodbc/
           version-pattern: <A HREF="sqliteodbc-([\d\.]+)\.tar\.gz">current source
