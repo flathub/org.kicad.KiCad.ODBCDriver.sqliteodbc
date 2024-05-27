@@ -38,8 +38,8 @@ modules:
     sources:
       - type: archive
         strip-components: 2
-        url: http://www.ch-werner.de/sqliteodbc/sqliteodbc-0.9999.tar.gz
-        sha256: a8ac240e80ff2354a0e0e9ab4d3b567192ae4f3bf5d29244478663a316024732
+        url: http://www.ch-werner.de/sqliteodbc/sqliteodbc-0.99991.tar.gz
+        sha256: 4d94adb8d3cde1fa94a28aeb0dfcc7be73145bcdfcdf3d5e225434db31dc8a5c
         x-checker-data:
           is-main-source: true
           type: html
