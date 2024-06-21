@@ -30,11 +30,6 @@ modules:
       - >
         install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo \
           org.kicad.KiCad.ODBCDriver.sqliteodbc.metainfo.xml
-      - >
-        appstream-compose \
-          --basename=org.kicad.KiCad.ODBCDriver.sqliteodbc \
-          --prefix=${FLATPAK_DEST} \
-          --origin=flatpak org.kicad.KiCad.ODBCDriver.sqliteodbc
     sources:
       - type: archive
         strip-components: 2
