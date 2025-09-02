@@ -1,0 +1,113 @@
+From 34870ea797b1122101ec7a786def21840ce686a3 Mon Sep 17 00:00:00 2001
+From: Damian Wrobel <dwrobel@ertelnet.rybnik.pl>
+Date: Tue, 21 Jan 2025 22:34:13 +0100
+Subject: [PATCH] Fix incompatible pointer compilation error
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Fix the following error:
+ sqliteodbc.c:2946:24: error: assignment to ‘void (*)(void)’
+  from incompatible pointer type ‘void (*)(char **)’
+   [-Wincompatible-pointer-types]
+ 2946 |             s->rowfree = freerows;
+      |                        ^
+ sqliteodbc.c:1313:1: note: ‘freerows’ declared here
+ 1313 | freerows(char **rowp)
+      | ^~~~~~~~
+
+Signed-off-by: Damian Wrobel <dwrobel@ertelnet.rybnik.pl>
+---
+ sqlite3odbc.c | 4 ++--
+ sqlite3odbc.h | 2 +-
+ sqlite4odbc.h | 2 +-
+ sqliteodbc.c  | 4 ++--
+ sqliteodbc.h  | 2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/sqlite3odbc.c b/sqlite3odbc.c
+index d2eaf71..fd174c6 100644
+--- a/sqlite3odbc.c
++++ b/sqlite3odbc.c
+@@ -14834,7 +14834,7 @@ drvtables(SQLHSTMT stmt,
+ #ifdef MEMORY_DEBUG
+ 	s->rowfree = xfree__;
+ #else
+-	s->rowfree = sqlite3_free;
++	s->rowfree = sqlite3_free_table;
+ #endif
+ 	s->nrows = 2;
+ 	s->rowp = s->rowprs = -1;
+@@ -15917,7 +15917,7 @@ drvgettypeinfo(SQLHSTMT stmt, SQLSMALLINT sqltype)
+ #ifdef MEMORY_DEBUG
+     s->rowfree = xfree__;
+ #else
+-    s->rowfree = sqlite3_free;
++    s->rowfree = sqlite3_free_table;
+ #endif
+     memset(s->rows, 0, sizeof (char *) * (s->nrows + 1) * asize);
+     if (sqltype == SQL_ALL_TYPES) {
+diff --git a/sqlite3odbc.h b/sqlite3odbc.h
+index ee2435f..f7d8489 100644
+--- a/sqlite3odbc.h
++++ b/sqlite3odbc.h
+@@ -264,7 +264,7 @@ typedef struct stmt {
+     int rowp;			/**< Current result row */
+     int rowprs;			/**< Current start row of rowset */
+     char **rows;		/**< 2-dim array, result set */
+-    void (*rowfree)();		/**< Free function for rows */
++    void (*rowfree)(char **);	/**< Free function for rows */
+     int naterr;			/**< Native error code */
+     char sqlstate[6];		/**< SQL state for SQLError() */
+     SQLCHAR logmsg[1024];	/**< Message for SQLError() */
+diff --git a/sqlite4odbc.h b/sqlite4odbc.h
+index 363c128..ef0d14c 100644
+--- a/sqlite4odbc.h
++++ b/sqlite4odbc.h
+@@ -260,7 +260,7 @@ typedef struct stmt {
+     int rowp;			/**< Current result row */
+     int rowprs;			/**< Current start row of rowset */
+     char **rows;		/**< 2-dim array, result set */
+-    void (*rowfree)();		/**< Free function for rows */
++    void (*rowfree)(char **);		/**< Free function for rows */
+     int naterr;			/**< Native error code */
+     char sqlstate[6];		/**< SQL state for SQLError() */
+     SQLCHAR logmsg[1024];	/**< Message for SQLError() */
+diff --git a/sqliteodbc.c b/sqliteodbc.c
+index 7b3b081..021d7bb 100644
+--- a/sqliteodbc.c
++++ b/sqliteodbc.c
+@@ -11298,7 +11298,7 @@ drvtables(SQLHSTMT stmt,
+ #ifdef MEMORY_DEBUG
+ 	s->rowfree = xfree__;
+ #else
+-	s->rowfree = free;
++	s->rowfree = freerows;
+ #endif
+ 	s->nrows = 2;
+ 	s->rowp = -1;
+@@ -12266,7 +12266,7 @@ drvgettypeinfo(SQLHSTMT stmt, SQLSMALLINT sqltype)
+ #ifdef MEMORY_DEBUG
+     s->rowfree = xfree__;
+ #else
+-    s->rowfree = free;
++    s->rowfree = freerows;
+ #endif
+     memset(s->rows, 0, sizeof (char *) * (s->nrows + 1) * asize);
+     if (sqltype == SQL_ALL_TYPES) {
+diff --git a/sqliteodbc.h b/sqliteodbc.h
+index ec235ce..88d74b7 100644
+--- a/sqliteodbc.h
++++ b/sqliteodbc.h
+@@ -260,7 +260,7 @@ typedef struct stmt {
+     int nrows;			/**< Number of result rows */
+     int rowp;			/**< Current result row */
+     char **rows;		/**< 2-dim array, result set */
+-    void (*rowfree)();		/**< Free function for rows */
++    void (*rowfree)(char **);		/**< Free function for rows */
+     int naterr;			/**< Native error code */
+     char sqlstate[6];		/**< SQL state for SQLError() */
+     SQLCHAR logmsg[1024];	/**< Message for SQLError() */
+-- 
+2.48.1
+

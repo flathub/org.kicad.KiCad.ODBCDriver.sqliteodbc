@@ -2,7 +2,7 @@ id: org.kicad.KiCad.ODBCDriver.sqliteodbc
 branch: stable
 runtime: org.kicad.KiCad
 runtime-version: stable
-sdk: org.freedesktop.Sdk//24.08
+sdk: org.freedesktop.Sdk//25.08
 build-extension: true
 appstream-compose: false
 build-options:
@@ -42,6 +42,11 @@ modules:
           version-pattern: <A HREF="sqliteodbc-([\d\.]+)\.tar\.gz">current source
             code</A>
           url-template: http://www.ch-werner.de/sqliteodbc/sqliteodbc-$version.tar.gz
+      - type: patch
+        paths:
+          # Taken from https://src.fedoraproject.org/rpms/sqliteodbc/c/e3d93f5909c884fd8846b36b71ba67a3ad65da2a?branch=rawhide
+          - patches/sqliteodbc-0.99991-Fix-incompatible-pointer-compilation-error.patch
+          - patches/sqliteodbc-0.99991-Fix-too-many-args-to-gpps-compilation-error.patch
       - type: shell
         commands:
           - cp -p /usr/share/automake-*/config.{sub,guess} .
