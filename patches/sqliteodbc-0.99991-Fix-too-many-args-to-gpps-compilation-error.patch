@@ -1,0 +1,179 @@
+From 86b8a4d1e77727050b3da8420af8f7248b270ebe Mon Sep 17 00:00:00 2001
+From: Damian Wrobel <dwrobel@ertelnet.rybnik.pl>
+Date: Tue, 21 Jan 2025 22:28:16 +0100
+Subject: [PATCH] Fix too many args to gpps() compilation error
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Fixes the following error:
+ sqliteodbc.c: In function ‘drvgpps’:
+ sqliteodbc.c:747:16: error: too many arguments to function ‘d->gpps’;
+  expected 0, have 6
+   747 |         return d->gpps(sect, ent, def, buf, bufsiz, fname);
+       |                ^       ~~~~
+ In file included from sqliteodbc.c:15:
+ sqliteodbc.h:158:11: note: declared here
+   158 |     int (*gpps)();
+       |           ^~~~
+
+Signed-off-by: Damian Wrobel <dwrobel@ertelnet.rybnik.pl>
+---
+ sqlite3odbc.c |  3 +--
+ sqlite3odbc.h | 10 +++++++++-
+ sqlite4odbc.c |  3 +--
+ sqlite4odbc.h | 10 +++++++++-
+ sqliteodbc.c  |  3 +--
+ sqliteodbc.h  | 10 +++++++++-
+ 6 files changed, 30 insertions(+), 9 deletions(-)
+
+diff --git a/sqlite3odbc.c b/sqlite3odbc.c
+index 5f5959d..d2eaf71 100644
+--- a/sqlite3odbc.c
++++ b/sqlite3odbc.c
+@@ -1240,7 +1240,6 @@ static void
+ drvgetgpps(DBC *d)
+ {
+     void *lib;
+-    int (*gpps)();
+ 
+     lib = dlopen("libodbcinst.so.2", RTLD_LAZY);
+     if (!lib) {
+@@ -1256,7 +1255,7 @@ drvgetgpps(DBC *d)
+ 	lib = dlopen("libiodbcinst.so", RTLD_LAZY);
+     }
+     if (lib) {
+-	gpps = (int (*)()) dlsym(lib, "SQLGetPrivateProfileString");
++	gpps_t gpps = (gpps_t) dlsym(lib, "SQLGetPrivateProfileString");
+ 	if (!gpps) {
+ 	    dlclose(lib);
+ 	    return;
+diff --git a/sqlite3odbc.h b/sqlite3odbc.h
+index ae7acd0..ee2435f 100644
+--- a/sqlite3odbc.h
++++ b/sqlite3odbc.h
+@@ -103,6 +103,14 @@ typedef struct {
+     struct dbc *dbcs;		/**< Pointer to first DBC */
+ } ENV;
+ 
++/* Based on SQLGetPrivateProfileString from the odbcinst.h */
++typedef int (*gpps_t)(const char *lpszSection,
++                const char *lpszEntry,
++                const char *lpszDefault,
++                const char *RetBuffer,
++                int cbRetBuffer,
++                const char *lpszFilename);
++
+ /**
+  * @typedef DBC
+  * @struct dbc
+@@ -147,7 +155,7 @@ typedef struct dbc {
+     int pwdLen;			/**< Length of password */
+ #ifdef USE_DLOPEN_FOR_GPPS
+     void *instlib;
+-    int (*gpps)();
++    gpps_t gpps;
+ #endif
+ #if defined(_WIN32) || defined(_WIN64)
+     CRITICAL_SECTION cs;	/**< For serializing most APIs */
+diff --git a/sqlite4odbc.c b/sqlite4odbc.c
+index c4ac684..cbce62b 100644
+--- a/sqlite4odbc.c
++++ b/sqlite4odbc.c
+@@ -1210,7 +1210,6 @@ static void
+ drvgetgpps(DBC *d)
+ {
+     void *lib;
+-    int (*gpps)();
+ 
+     lib = dlopen("libodbcinst.so.2", RTLD_LAZY);
+     if (!lib) {
+@@ -1226,7 +1225,7 @@ drvgetgpps(DBC *d)
+ 	lib = dlopen("libiodbcinst.so", RTLD_LAZY);
+     }
+     if (lib) {
+-	gpps = (int (*)()) dlsym(lib, "SQLGetPrivateProfileString");
++	gpps_t gpps = (gpps_t) dlsym(lib, "SQLGetPrivateProfileString");
+ 	if (!gpps) {
+ 	    dlclose(lib);
+ 	    return;
+diff --git a/sqlite4odbc.h b/sqlite4odbc.h
+index ad42ce6..363c128 100644
+--- a/sqlite4odbc.h
++++ b/sqlite4odbc.h
+@@ -103,6 +103,14 @@ typedef struct {
+     struct dbc *dbcs;		/**< Pointer to first DBC */
+ } ENV;
+ 
++/* Based on SQLGetPrivateProfileString from the odbcinst.h */
++typedef int (*gpps_t)(const char *lpszSection,
++                const char *lpszEntry,
++                const char *lpszDefault,
++                const char *RetBuffer,
++                int cbRetBuffer,
++                const char *lpszFilename);
++
+ /**
+  * @typedef DBC
+  * @struct dbc
+@@ -145,7 +153,7 @@ typedef struct dbc {
+     int pwdLen;			/**< Length of password */
+ #ifdef USE_DLOPEN_FOR_GPPS
+     void *instlib;
+-    int (*gpps)();
++    gpps_t gpps;
+ #endif
+ #if defined(_WIN32) || defined(_WIN64)
+     CRITICAL_SECTION cs;	/**< For serializing most APIs */
+diff --git a/sqliteodbc.c b/sqliteodbc.c
+index 055dba2..7b3b081 100644
+--- a/sqliteodbc.c
++++ b/sqliteodbc.c
+@@ -704,7 +704,6 @@ static void
+ drvgetgpps(DBC *d)
+ {
+     void *lib;
+-    int (*gpps)();
+ 
+     lib = dlopen("libodbcinst.so.2", RTLD_LAZY);
+     if (!lib) {
+@@ -720,7 +719,7 @@ drvgetgpps(DBC *d)
+ 	lib = dlopen("libiodbcinst.so", RTLD_LAZY);
+     }
+     if (lib) {
+-	gpps = (int (*)()) dlsym(lib, "SQLGetPrivateProfileString");
++	gpps_t gpps = (gpps_t) dlsym(lib, "SQLGetPrivateProfileString");
+ 	if (!gpps) {
+ 	    dlclose(lib);
+ 	    return;
+diff --git a/sqliteodbc.h b/sqliteodbc.h
+index c15be02..ec235ce 100644
+--- a/sqliteodbc.h
++++ b/sqliteodbc.h
+@@ -118,6 +118,14 @@ typedef struct {
+     struct dbc *dbcs;		/**< Pointer to first DBC */
+ } ENV;
+ 
++/* Based on SQLGetPrivateProfileString from the odbcinst.h */
++typedef int (*gpps_t)(const char *lpszSection,
++                const char *lpszEntry,
++                const char *lpszDefault,
++                const char *RetBuffer,
++                int cbRetBuffer,
++                const char *lpszFilename);
++
+ /**
+  * @typedef DBC
+  * @struct dbc
+@@ -155,7 +163,7 @@ typedef struct dbc {
+ #endif
+ #ifdef USE_DLOPEN_FOR_GPPS
+     void *instlib;
+-    int (*gpps)();
++    gpps_t gpps;
+ #endif
+ #if defined(_WIN32) || defined(_WIN64)
+     CRITICAL_SECTION cs;	/**< For serializing most APIs */
+-- 
+2.48.1
+
