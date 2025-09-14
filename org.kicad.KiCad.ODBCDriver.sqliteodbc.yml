@@ -1,5 +1,4 @@
 id: org.kicad.KiCad.ODBCDriver.sqliteodbc
-branch: stable
 runtime: org.kicad.KiCad
 runtime-version: stable
 sdk: org.freedesktop.Sdk//25.08
